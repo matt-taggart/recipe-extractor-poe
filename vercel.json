@@ -1,8 +1,7 @@
 {
 	"functions": {
 		"api/recipe-extractor.py": {
-			"runtime": "python3.9",
-			"handler": "api/recipe-extractor.py:app"
+			"runtime": "@vercel/python@3.1.0"
 		}
 	}
 }
