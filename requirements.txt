@@ -1,0 +1,3 @@
+fastapi_poe
+requests
+beautifulsoup4
