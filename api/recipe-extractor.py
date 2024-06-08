@@ -126,5 +126,5 @@ class RecipeExtractorBot(fp.PoeBot):
         )
 
 
-fp.run(RecipeExtractorBot(), access_key=os.environ["POE_API_KEY"])
+app = fp.run(RecipeExtractorBot(), access_key=os.environ["POE_API_KEY"])
 
