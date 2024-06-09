@@ -102,8 +102,14 @@ class RecipeExtractorBot(fp.PoeBot):
         """
         self.last_url: Optional[str] = None
         self.last_recipe_text: Optional[str] = None
+        self.initial_message_sent = False
 
     async def get_response(self, request: fp.QueryRequest) -> AsyncIterable[fp.PartialResponse]:
+        if not self.initial_message_sent:
+            self.initial_message_sent = True
+
+        yield fp.PartialResponse(text=self.initial_message)
+
         user_input = get_latest_user_input(request.query)
 
         # Check if the input contains a URL
@@ -113,19 +119,19 @@ class RecipeExtractorBot(fp.PoeBot):
             self.last_url = url
             extracted_text = fetch_and_extract_text_from_url(url)
             if not extracted_text:
-                yield fp.PartialResponse(model_copy={"text": "This URL doesn't look like it's valid. Can you please try again?"})
+                yield fp.PartialResponse(text="This URL doesn't look like it's valid. Can you please try again?")
                 return
             response_text = process_recipe_request(extracted_text)
             self.last_recipe_text = extracted_text
-            yield fp.PartialResponse(model_copy={"text": response_text})
+            yield fp.PartialResponse(text=response_tex})
         else:
             if self.last_recipe_text:
                 # If there's a previously stored recipe, assume this is a modification request
                 response_text = process_modification_request(user_input, self.last_recipe_text)
-                yield fp.PartialResponse(model_copy={"text": response_text})
+                yield fp.PartialResponse(text=response_text)
             else:
                 # If no URL has been provided yet and no last recipe is stored, prompt the user to enter a URL
-                yield fp.PartialResponse(model_copy={"text": "Please provide a URL to extract a recipe from."})
+                yield fp.PartialResponse(text="Please provide a URL to extract a recipe from.")
 
     async def get_settings(self, setting: fp.SettingsRequest) -> fp.SettingsResponse:
         return fp.SettingsResponse(
