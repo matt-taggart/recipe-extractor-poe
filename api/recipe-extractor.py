@@ -2,15 +2,11 @@ from __future__ import annotations
 
 import os
 
-import modal
-
 from typing import AsyncIterable, Optional
 import fastapi_poe as fp
 import requests
 from bs4 import BeautifulSoup
 import re
-
-app = modal.App("recipe-extractor-bot")
 
 def is_valid_url(url: str) -> bool:
     # Regular expression to validate URLs
