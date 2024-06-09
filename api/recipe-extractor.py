@@ -1,15 +1,17 @@
 from __future__ import annotations
 
-import os
-
 from typing import AsyncIterable, Optional
 import fastapi_poe as fp
 import requests
 from bs4 import BeautifulSoup
 import re
+from fastapi import FastAPI
+from mangum import Mangum
+
+from dotenv import load_dotenv
+load_dotenv()
 
 def is_valid_url(url: str) -> bool:
-    # Regular expression to validate URLs
     regex = re.compile(
         r'^(https?://)?'  # http:// or https://
         r'(([A-Za-z0-9-]+\.)+[A-Za-z]{2,6})'  # domain
@@ -21,7 +23,7 @@ def is_valid_url(url: str) -> bool:
 def fetch_and_extract_text_from_url(url: str) -> str:
     if not is_valid_url(url):
         return ""
-    
+
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -76,7 +78,7 @@ def process_modification_request(modification_text, last_recipe_text):
     1. Recipe name
     2. Ingredients
     3. Instructions
-    4. Modifications (If applicable) 
+            4. Modifications (If applicable)
     """
 
 class RecipeExtractorBot(fp.PoeBot):
@@ -115,12 +117,19 @@ class RecipeExtractorBot(fp.PoeBot):
     async def get_settings(self, setting: fp.SettingsRequest) -> fp.SettingsResponse:
         return fp.SettingsResponse(
             server_bot_dependencies={"GPT-4o": 1},
+
             enable_multi_bot_chat_prompting=True,
             allow_attachments=True,
             enable_image_comprehension=True,
             enforce_author_role_alternation=True  # Optional, based on your needs
         )
 
+app = FastAPI()
 
-app = fp.run(RecipeExtractorBot(), access_key=os.environ["POE_API_KEY"])
+@app.post("/api/recipe-extractor")
+async def recipe_extractor_endpoint(request: fp.QueryRequest):
+    bot = RecipeExtractorBot()
+    async for response in bot.get_response(request):
+        return response
 
+handler = Mangum(app)
