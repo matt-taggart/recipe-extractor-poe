@@ -83,6 +83,17 @@ def process_modification_request(modification_text, last_recipe_text):
     4. Modifications (If applicable) 
     """
 
+def get_latest_user_input(messages):
+    latest = ""
+
+    for message in reversed(messages):
+        if message.role == "user":
+            latest = message.content
+            break
+
+    return latest
+ 
+
 class RecipeExtractorBot(fp.PoeBot):
     def __init__(self):
         self.initial_message = """
@@ -93,7 +104,7 @@ class RecipeExtractorBot(fp.PoeBot):
         self.last_recipe_text: Optional[str] = None
 
     async def get_response(self, request: fp.QueryRequest) -> AsyncIterable[fp.PartialResponse]:
-        user_input = request.text.strip()
+        user_input = get_latest_user_input(request.query)
 
         # Check if the input contains a URL
         url_match = re.search(r'(https?://[^\s]+)', user_input)
