@@ -123,5 +123,5 @@ class RecipeExtractorBot(fp.PoeBot):
 
 
 if __name__ == "__main__":
-    fp.run(RecipeExtractorBot(), access_key=os.environ["POE_API_KEY"])
+    fp.run(RecipeExtractorBot(), access_key=os.environ["POE_API_KEY"], port=3000)
 
