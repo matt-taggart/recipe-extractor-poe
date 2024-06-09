@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-
 from typing import AsyncIterable, Optional
 import fastapi_poe as fp
 import requests
@@ -37,50 +36,19 @@ def fetch_and_extract_text_from_url(url: str) -> str:
     except Exception as e:
         return f"Error parsing the content: {e}"
 
-def process_recipe_request(parsedText):
+def process_recipe_request(parsedText, system_message, instructions):
     return f"""
-    ## Context: You are Recipe Extractor bot, a helpful AI assistant that helps users extract recipe details from a given URL. Can you please extract the recipe from the following text and display it in a clean, organized Markdown format? \n {parsedText}. Don't use a preamble when returning results.
-
-    ### Instructions
-
-    The recipe name, ingredients, instructions, and modifications should be returned as Markdown separated into three sections (four if returning a modification):
-
-    1. Recipe name
-    2. Ingredients
-    3. Instructions
-    4. Modifications (If applicable) 
-
-    Here is an example of how it should be formatted:
-
-    ### Chicken Alfredo
-
-    ### Ingredients
-    * 4oz of chicken breast
-    * 1 can of alfredo sauce
-    * 1 stick of butter
-    * 1 sprig of parsley
-
-    ### Instructions
-    1. Cook the chicken
-    2. Add the sauce
-    3. Add the butter
-    4. Add the parsley
-
-    If the user requests modifications to the recipe, explain why recipe was modified separately from instructions. If the user's query doesn't make sense, the content isn't recipe-related, or the url isn't valid, tell the user: 'This URL doesn't look like it's valid. Can you please try again?'
+    {system_message}
+    {instructions}
+    {parsedText}
     """
 
-def process_modification_request(modification_text, last_recipe_text):
+def process_modification_request(modification_text, last_recipe_text, system_message, instructions):
     return f"""
-    ## Context: You are Recipe Extractor bot, a helpful AI assistant that helps users modify recipes. Based on the following recipe, can you please apply the requested modification and display it in a clean, organized Markdown format? \n Recipe: {last_recipe_text} \n Modification: {modification_text}.
-
-    ### Instructions
-
-    The recipe name, ingredients, instructions, and modifications should be returned as Markdown separated into three sections (four if returning a modification):
-
-    1. Recipe name
-    2. Ingredients
-    3. Instructions
-    4. Modifications (If applicable) 
+    {system_message}
+    {instructions}
+    Recipe: {last_recipe_text}
+    Modification: {modification_text}
     """
 
 def get_latest_user_input(messages):
@@ -108,9 +76,20 @@ class RecipeExtractorBot(fp.PoeBot):
         if not self.initial_message_sent:
             self.initial_message_sent = True
 
-        yield fp.PartialResponse(text=self.initial_message)
-
         user_input = get_latest_user_input(request.query)
+        
+        # Define system message and instructions
+        system_message = "## Context: You are Recipe Extractor bot, a helpful AI assistant."
+        instructions = """
+        ### Instructions
+
+        The recipe name, ingredients, instructions, and modifications should be returned as Markdown separated into three sections (four if returning a modification):
+
+        1. Recipe name
+        2. Ingredients
+        3. Instructions
+        4. Modifications (If applicable) 
+        """
 
         # Check if the input contains a URL
         url_match = re.search(r'(https?://[^\s]+)', user_input)
@@ -121,13 +100,13 @@ class RecipeExtractorBot(fp.PoeBot):
             if not extracted_text:
                 yield fp.PartialResponse(text="This URL doesn't look like it's valid. Can you please try again?")
                 return
-            response_text = process_recipe_request(extracted_text)
+            response_text = process_recipe_request(extracted_text, system_message, instructions)
             self.last_recipe_text = extracted_text
             yield fp.PartialResponse(text=response_text)
         else:
             if self.last_recipe_text:
                 # If there's a previously stored recipe, assume this is a modification request
-                response_text = process_modification_request(user_input, self.last_recipe_text)
+                response_text = process_modification_request(user_input, self.last_recipe_text, system_message, instructions)
                 yield fp.PartialResponse(text=response_text)
             else:
                 # If no URL has been provided yet and no last recipe is stored, prompt the user to enter a URL
@@ -145,4 +124,3 @@ class RecipeExtractorBot(fp.PoeBot):
 
 if __name__ == "__main__":
     fp.run(RecipeExtractorBot(), access_key=os.environ["POE_API_KEY"])
-
