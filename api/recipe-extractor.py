@@ -8,6 +8,10 @@ import requests
 from bs4 import BeautifulSoup
 import re
 
+from dotenv import load_dotenv
+load_dotenv() 
+
+
 def is_valid_url(url: str) -> bool:
     # Regular expression to validate URLs
     regex = re.compile(
@@ -123,5 +127,5 @@ class RecipeExtractorBot(fp.PoeBot):
 
 
 if __name__ == "__main__":
-    fp.run(RecipeExtractorBot(), access_key=os.environ["POE_API_KEY"], port=3000)
+    fp.run(RecipeExtractorBot(), access_key=os.environ["POE_API_KEY"])
 
