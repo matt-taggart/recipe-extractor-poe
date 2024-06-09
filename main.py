@@ -123,7 +123,7 @@ class RecipeExtractorBot(fp.PoeBot):
                 return
             response_text = process_recipe_request(extracted_text)
             self.last_recipe_text = extracted_text
-            yield fp.PartialResponse(text=response_tex})
+            yield fp.PartialResponse(text=response_text)
         else:
             if self.last_recipe_text:
                 # If there's a previously stored recipe, assume this is a modification request
