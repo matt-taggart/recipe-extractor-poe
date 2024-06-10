@@ -104,8 +104,8 @@ class RecipeExtractorBot(fp.PoeBot):
                 access_key=request.access_key,
                 version="1.0",  # Example version, replace with the actual version
                 type="query",  # Example type, replace with the correct type
-                user_id=request.user_id,
-                conversation_id=request.conversation_id,
+                user_id=str(request.user_id),  # Ensure user_id is a string
+                conversation_id=str(request.conversation_id),  # Ensure conversation_id is a string
                 message_id=str(uuid.uuid4())  # Generate a unique message ID
             )
 
@@ -125,8 +125,8 @@ class RecipeExtractorBot(fp.PoeBot):
                     access_key=request.access_key,
                     version="1.0",  # Example version, replace with the actual version
                     type="query",  # Example type, replace with the correct type
-                    user_id=request.user_id,
-                    conversation_id=request.conversation_id,
+                    user_id=str(request.user_id),  # Ensure user_id is a string
+                    conversation_id=str(request.conversation_id),  # Ensure conversation_id is a string
                     message_id=str(uuid.uuid4())  # Generate a unique message ID
                 )
 
