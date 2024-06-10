@@ -61,14 +61,63 @@ class RecipeExtractorBot(fp.PoeBot):
         
         ### Instructions
         
-        The recipe name, ingredients, instructions, and modifications should be returned as Markdown separated into three sections (four if returning a modification):
+        The recipe name, ingredients, instructions, and modifications should be returned as Markdown separated into three sections with headings (four if user requests a modification to the original recipe):
         
         1. Recipe name
         2. Ingredients
         3. Instructions
         4. Modifications (If applicable)
 
-        If you include a modifications section, make sure to always update the recipe ingredients and instructions with the modifications/substitutions. 
+        If there's no modifications, just return the recipe name, ingredients, and instructions.
+
+        If there is a modification, always update the ingredients and instructions to reflect the changes.
+
+        ### Example Markdown Output:
+
+        ## Roast Beef Horseradish Roll-Ups
+
+        ### Ingredients
+        - 2 (8 ounce) packages fat-free cream cheese, softened
+        - 3 ½ tablespoons prepared horseradish
+        - 3 tablespoons Dijon-style mustard
+        - 12 (12 inch) flour tortillas
+        - 30 spinach leaves, washed with stems removed
+        - 1 ½ pounds thinly sliced cooked deli roast beef
+        - 8 ounces shredded Cheddar cheese
+
+        ### Instructions
+        1. Beat the cream cheese, horseradish, and mustard together in a bowl until well blended.
+        2. Spread a thin layer of the cream cheese mixture over each tortilla.
+        3. Arrange spinach leaves evenly over the tortillas. Place two slices of roast beef over the cream cheese. Sprinkle with Cheddar cheese, dividing evenly between tortillas.
+        4. Starting at one end, gently roll up each tortilla into a tight tube. Wrap with aluminum foil or plastic wrap to keep the rolls tight. Refrigerate at least 4 hours.
+        5. To serve for lunch, unwrap and slice into 2 or 3 pieces. Only cut the rolls you will be using that day so the others do not dry out.
+        6. To serve for parties, unwrap and slice the rolls diagonally into 1 inch sections, and arrange on a serving platter.
+
+        ### Example Markdown Output with Modification (user request: make this recipe dairy free):
+
+
+        ## Roast Beef Horseradish Roll-Ups
+
+        ### Ingredients
+        - 2 (8 ounce) packages fat-free cashew cream cheese, softened
+        - 3 ½ tablespoons prepared horseradish
+        - 3 tablespoons Dijon-style mustard
+        - 12 (12 inch) flour tortillas
+        - 30 spinach leaves, washed with stems removed
+        - 1 ½ pounds thinly sliced cooked deli roast beef
+        - 8 ounces shredded vegan cheddar
+
+        ### Instructions
+        1. Beat the cashew cream cheese, horseradish, and mustard together in a bowl until well blended.
+        2. Spread a thin layer of the cashew cream cheese mixture over each tortilla.
+        3. Arrange spinach leaves evenly over the tortillas. Place two slices of roast beef over the cream cheese. Sprinkle with vegan Cheddar cheese, dividing evenly between tortillas.
+        4. Starting at one end, gently roll up each tortilla into a tight tube. Wrap with aluminum foil or plastic wrap to keep the rolls tight. Refrigerate at least 4 hours.
+        5. To serve for lunch, unwrap and slice into 2 or 3 pieces. Only cut the rolls you will be using that day so the others do not dry out.
+        6. To serve for parties, unwrap and slice the rolls diagonally into 1 inch sections, and arrange on a serving platter.
+
+        ### Modifications 
+        - Modified ingredients to make this recipe dairy free
+        - Found suitable subsitution for dairy that still works with the recipe
         """
 
     async def get_response(self, request: fp.QueryRequest) -> AsyncIterable[fp.PartialResponse]:
@@ -96,7 +145,7 @@ class RecipeExtractorBot(fp.PoeBot):
             self.last_recipe_text = extracted_text
 
             # Prepare the message to send to GPT-4
-            prompt = f"Extracted recipe text:\n\n{extracted_text}\n\n{self.system_message}"
+            prompt = f"Extracted recipe text:\n\n{extracted_text}\n\n"
             gpt4_request = fp.QueryRequest(
                 query=[
                     fp.ProtocolMessage(role="system", content=self.system_message),
@@ -115,7 +164,7 @@ class RecipeExtractorBot(fp.PoeBot):
         else:
             if self.last_recipe_text:
                 # Prepare the message to send to GPT-4 including the modification
-                prompt = f"Extracted recipe text:\n\n{self.last_recipe_text}\n\nUser's modification request:\n\n{user_input}\n\n{self.system_message}"
+                prompt = f"Extracted recipe text:\n\n{self.last_recipe_text}\n\nUser's modification request:\n\n{user_input}"
                 gpt4_request = fp.QueryRequest(
                     query=[
                         fp.ProtocolMessage(role="system", content=self.system_message),
