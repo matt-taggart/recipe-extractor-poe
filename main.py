@@ -47,6 +47,8 @@ def get_latest_user_input(messages):
 
 class RecipeExtractorBot(fp.PoeBot):
     def __init__(self):
+        super().__init__()
+
         self.initial_message = """
         Hi there! I'm Recipe Extractor bot. I can help you extract recipe details from a given URL.
         Just send me a URL and I'll do my best to provide a clean, organized Markdown format of the recipe.
