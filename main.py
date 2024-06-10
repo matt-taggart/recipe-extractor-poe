@@ -67,6 +67,8 @@ class RecipeExtractorBot(fp.PoeBot):
         2. Ingredients
         3. Instructions
         4. Modifications (If applicable)
+
+        If you include a modifications section, make sure to always update the recipe ingredients and instructions with the modifications/substitutions. 
         """
 
     async def get_response(self, request: fp.QueryRequest) -> AsyncIterable[fp.PartialResponse]:
@@ -112,8 +114,6 @@ class RecipeExtractorBot(fp.PoeBot):
                 yield msg
         else:
             if self.last_recipe_text:
-                modification_response = f"Recipe: {self.last_recipe_text}\nModification: {user_input}"
-
                 # Prepare the message to send to GPT-4 including the modification
                 prompt = f"Extracted recipe text:\n\n{self.last_recipe_text}\n\nUser's modification request:\n\n{user_input}\n\n{self.system_message}"
                 gpt4_request = fp.QueryRequest(
