@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import AsyncIterable, Optional
+from typing import AsyncIterable 
 import fastapi_poe as fp
 import requests
 from bs4 import BeautifulSoup
@@ -46,30 +46,33 @@ def get_latest_user_input(messages):
     return latest
 
 class RecipeExtractorBot(fp.PoeBot):
-    def __init__(self):
-        super().__init__()
+    instance_data = {}
+    system_message = """
+    ## Internal Context: You are Recipe Extractor bot, a helpful AI assistant.
+    
+    ### Instructions
+    
+    The recipe name, ingredients, instructions, and modifications should be returned as Markdown separated into three sections (four if returning a modification):
+    
+    1. Recipe name
+    2. Ingredients
+    3. Instructions
+    4. Modifications (If applicable)
+    """
 
-        self.initial_message = """
-        Hi there! I'm Recipe Extractor bot. I can help you extract recipe details from a given URL.
-        Just send me a URL and I'll do my best to provide a clean, organized Markdown format of the recipe.
-        """
-        self.last_url: Optional[str] = None
-        self.last_recipe_text: Optional[str] = None
-        self.initial_message_sent = False
-        self.system_message = """
-        ## Internal Context: You are Recipe Extractor bot, a helpful AI assistant.
-        
-        ### Instructions
-        
-        The recipe name, ingredients, instructions, and modifications should be returned as Markdown separated into three sections (four if returning a modification):
-        
-        1. Recipe name
-        2. Ingredients
-        3. Instructions
-        4. Modifications (If applicable)
-        """
+    @classmethod
+    def get_instance_data(cls, user_id):
+        if user_id not in cls.instance_data:
+            cls.instance_data[user_id] = {
+                "last_url": None,
+                "last_recipe_text": None,
+                "initial_message_sent": False
+            }
+        return cls.instance_data[user_id]
 
     async def get_response(self, request: fp.QueryRequest) -> AsyncIterable[fp.PartialResponse]:
+        instance_data = self.get_instance_data(request.user_id)
+
         # Check if a system message exists
         sysmsgexists = False
         for protmsg in request.query:
@@ -86,12 +89,12 @@ class RecipeExtractorBot(fp.PoeBot):
         url_match = re.search(r'(https?://[^\s]+)', user_input)
         if url_match:
             url = url_match.group(0)
-            self.last_url = url
+            instance_data["last_url"] = url
             extracted_text = fetch_and_extract_text_from_url(url)
             if not extracted_text:
                 yield fp.PartialResponse(text="This URL doesn't look like it's valid. Can you please try again?")
                 return
-            self.last_recipe_text = extracted_text
+            instance_data["last_recipe_text"] = extracted_text
 
             print('user_id', request.user_id)
             print('conversation_id', request.conversation_id)
@@ -115,11 +118,11 @@ class RecipeExtractorBot(fp.PoeBot):
             async for msg in fp.stream_request(gpt4_request, "Claude-instant", request.access_key):
                 yield msg
         else:
-            if self.last_recipe_text:
-                modification_response = f"Recipe: {self.last_recipe_text}\nModification: {user_input}"
+            if instance_data["last_recipe_text"]:
+                modification_response = f"Recipe: {instance_data['last_recipe_text']}\nModification: {user_input}"
 
                 # Prepare the message to send to GPT-4 including the modification
-                prompt = f"Extracted recipe text:\n\n{self.last_recipe_text}\n\nUser's modification request:\n\n{user_input}\n\n{self.system_message}"
+                prompt = f"Extracted recipe text:\n\n{instance_data['last_recipe_text']}\n\nUser's modification request:\n\n{user_input}\n\n{self.system_message}"
                 gpt4_request = fp.QueryRequest(
                     query=[
                         fp.ProtocolMessage(role="system", content=self.system_message),
