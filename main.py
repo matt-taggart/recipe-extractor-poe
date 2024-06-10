@@ -142,10 +142,7 @@ class RecipeExtractorBot(fp.PoeBot):
     async def get_settings(self, setting: fp.SettingsRequest) -> fp.SettingsResponse:
         return fp.SettingsResponse(
             introduction_message="Hi there! I'm Recipe Extractor bot. I can help you extract recipe details from a given URL. Just send me a URL and I'll do my best to provide a clean, organized Markdown format of the recipe.",
-            server_bot_dependencies={"Claude-instant": 1}, 
-            enable_multi_bot_chat_prompting=True,
-            allow_attachments=True,
-            enable_image_comprehension=True,
+            server_bot_dependencies={"Claude-instant": 1}
         )
 
 recipe_extractor_bot = RecipeExtractorBot()
