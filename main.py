@@ -70,7 +70,6 @@ class RecipeExtractorBot(fp.PoeBot):
 
         If there's no modifications, just return the recipe name, ingredients, and instructions.
 
-        If there is a modification, always update the ingredients and instructions to reflect the changes.
 
         ### Example Markdown Output:
 
@@ -95,7 +94,6 @@ class RecipeExtractorBot(fp.PoeBot):
 
         ### Example Markdown Output with Modification (user request: make this recipe dairy free):
 
-
         ## Roast Beef Horseradish Roll-Ups
 
         ### Ingredients
@@ -118,6 +116,10 @@ class RecipeExtractorBot(fp.PoeBot):
         ### Modifications 
         - Modified ingredients to make this recipe dairy free
         - Found suitable subsitution for dairy that still works with the recipe
+
+
+        ## Internal Context & Instructions
+        If there is a modification, ALWAYS return updated the ingredients and instructions with the updated ingredients and instructions.
         """
 
     async def get_response(self, request: fp.QueryRequest) -> AsyncIterable[fp.PartialResponse]:
