@@ -104,9 +104,9 @@ class RecipeExtractorBot(fp.PoeBot):
                 access_key=request.access_key,
                 version="1.0",  # Example version, replace with the actual version
                 type="query",  # Example type, replace with the correct type
-                user_id=str(request.user_id),  # Ensure user_id is a string
-                conversation_id=str(request.conversation_id),  # Ensure conversation_id is a string
-                message_id=str(uuid.uuid4())  # Generate a unique message ID
+                user_id=request.user_id,
+                message_id=request.message_id,
+                conversation_id=request.conversation_id
             )
 
             async for msg in fp.stream_request(gpt4_request, "GPT-4-128k", request.access_key):
@@ -125,9 +125,9 @@ class RecipeExtractorBot(fp.PoeBot):
                     access_key=request.access_key,
                     version="1.0",  # Example version, replace with the actual version
                     type="query",  # Example type, replace with the correct type
-                    user_id=str(request.user_id),  # Ensure user_id is a string
-                    conversation_id=str(request.conversation_id),  # Ensure conversation_id is a string
-                    message_id=str(uuid.uuid4())  # Generate a unique message ID
+                    user_id=request.user_id,
+                    message_id=request.message_id,
+                    conversation_id=request.conversation_id
                 )
 
                 async for msg in fp.stream_request(gpt4_request, "GPT-4-128k", request.access_key):
