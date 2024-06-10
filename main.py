@@ -96,7 +96,7 @@ class RecipeExtractorBot(fp.PoeBot):
 
             print('user_id', request.user_id)
             print('conversation_id', request.conversation_id)
-            print('message_id', request.user_id)
+            print('message_id', request.message_id)
 
             # Prepare the message to send to GPT-4
             prompt = f"Extracted recipe text:\n\n{extracted_text}\n\n{self.system_message}"
