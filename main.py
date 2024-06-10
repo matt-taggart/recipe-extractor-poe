@@ -8,8 +8,7 @@ from bs4 import BeautifulSoup
 import re
 
 from dotenv import load_dotenv
-load_dotenv() 
-
+load_dotenv()
 
 def is_valid_url(url: str) -> bool:
     # Regular expression to validate URLs
@@ -45,7 +44,6 @@ def get_latest_user_input(messages):
             break
 
     return latest
- 
 
 class RecipeExtractorBot(fp.PoeBot):
     def __init__(self):
@@ -56,16 +54,8 @@ class RecipeExtractorBot(fp.PoeBot):
         self.last_url: Optional[str] = None
         self.last_recipe_text: Optional[str] = None
         self.initial_message_sent = False
-
-    async def get_response(self, request: fp.QueryRequest) -> AsyncIterable[fp.PartialResponse]:
-        if not self.initial_message_sent:
-            self.initial_message_sent = True
-
-        user_input = get_latest_user_input(request.query)
-        
-        # Define system message and instructions
-        system_message = """
-        ## Context: You are Recipe Extractor bot, a helpful AI assistant.
+        self.system_message = """
+        ## Internal Context: You are Recipe Extractor bot, a helpful AI assistant.
         
         ### Instructions
         
@@ -76,6 +66,12 @@ class RecipeExtractorBot(fp.PoeBot):
         3. Instructions
         4. Modifications (If applicable)
         """
+
+    async def get_response(self, request: fp.QueryRequest) -> AsyncIterable[fp.PartialResponse]:
+        if not self.initial_message_sent:
+            self.initial_message_sent = True
+
+        user_input = get_latest_user_input(request.query)
         
         # Check if the input contains a URL
         url_match = re.search(r'(https?://[^\s]+)', user_input)
@@ -86,14 +82,13 @@ class RecipeExtractorBot(fp.PoeBot):
             if not extracted_text:
                 yield fp.PartialResponse(text="This URL doesn't look like it's valid. Can you please try again?")
                 return
-            response_text = f"{system_message}\n{extracted_text}"
             self.last_recipe_text = extracted_text
-            yield fp.PartialResponse(text=response_text)
+            yield fp.PartialResponse(text=extracted_text)  # Returning only the extracted text
         else:
             if self.last_recipe_text:
                 # If there's a previously stored recipe, assume this is a modification request
-                response_text = f"{system_message}\nRecipe: {self.last_recipe_text}\nModification: {user_input}"
-                yield fp.PartialResponse(text=response_text)
+                modification_response = f"Recipe: {self.last_recipe_text}\nModification: {user_input}"
+                yield fp.PartialResponse(text=modification_response)
             else:
                 # If no URL has been provided yet and no last recipe is stored, prompt the user to enter a URL
                 yield fp.PartialResponse(text="Please provide a URL to extract a recipe from.")
@@ -104,9 +99,7 @@ class RecipeExtractorBot(fp.PoeBot):
             enable_multi_bot_chat_prompting=True,
             allow_attachments=True,
             enable_image_comprehension=True,
-            enforce_author_role_alternation=True  # Optional, based on your needs
         )
-
 
 if __name__ == "__main__":
     fp.run(RecipeExtractorBot(), access_key=os.environ["POE_API_KEY"])
