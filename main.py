@@ -46,28 +46,6 @@ def get_latest_user_input(messages):
     return latest
 
 class RecipeExtractorBot(fp.PoeBot):
-    def __init__(self):
-        super().__init__()
-
-        self.initial_message = """
-        Hi there! I'm Recipe Extractor bot. I can help you extract recipe details from a given URL.
-        Just send me a URL and I'll do my best to provide a clean, organized Markdown format of the recipe.
-        """
-        self.last_url: Optional[str] = None
-        self.last_recipe_text: Optional[str] = None
-        self.initial_message_sent = False
-        self.system_message = """
-        ## Internal Context: You are Recipe Extractor bot, a helpful AI assistant.
-        
-        ### Instructions
-        
-        The recipe name, ingredients, instructions, and modifications should be returned as Markdown separated into three sections (four if returning a modification):
-        
-        1. Recipe name
-        2. Ingredients
-        3. Instructions
-        4. Modifications (If applicable)
-        """
 
     async def get_response(self, request: fp.QueryRequest) -> AsyncIterable[fp.PartialResponse]:
         user_input = get_latest_user_input(request.query)
@@ -84,10 +62,9 @@ class RecipeExtractorBot(fp.PoeBot):
             self.last_recipe_text = extracted_text
 
             # Prepare the message to send to GPT-4
-            prompt = f"Extracted recipe text:\n\n{extracted_text}\n\n{self.system_message}"
+            prompt = f"Extracted recipe text:\n\n{extracted_text}\n\n"
             gpt4_request = fp.QueryRequest(
                 query=[
-                    fp.ProtocolMessage(role="system", content=self.system_message),
                     fp.ProtocolMessage(role="user", content=prompt)
                 ],
                 access_key=request.access_key,
@@ -97,38 +74,15 @@ class RecipeExtractorBot(fp.PoeBot):
                 conversation_id=str(request.conversation_id),  # Ensure conversation_id is a string
                 message_id=str(request.message_id) # Generate a unique message ID
             )
-            print('gpt4_request', gpt4_request)
 
             async for msg in fp.stream_request(gpt4_request, "Claude-instant", request.access_key):
-                yield msg
+                 print("Received message:", msg)
+                 yield msg.model_copy(update={"text": msg.text })
         else:
-            if self.last_recipe_text:
-                modification_response = f"Recipe: {self.last_recipe_text}\nModification: {user_input}"
-
-                # Prepare the message to send to GPT-4 including the modification
-                prompt = f"Extracted recipe text:\n\n{self.last_recipe_text}\n\nUser's modification request:\n\n{user_input}\n\n{self.system_message}"
-                gpt4_request = fp.QueryRequest(
-                    query=[
-                        fp.ProtocolMessage(role="system", content=self.system_message),
-                        fp.ProtocolMessage(role="user", content=prompt)
-                    ],
-                    access_key=request.access_key,
-                    version="1.0",  # Example version, replace with the actual version
-                    type="query",  # Example type, replace with the correct type
-                    user_id=str(request.user_id),  # Ensure user_id is a string
-                    conversation_id=str(request.conversation_id),  # Ensure conversation_id is a string
-                    message_id=str(request.message_id)
-                )
-
-                async for msg in fp.stream_request(gpt4_request, "Claude-instant", request.access_key):
-                    yield msg
-            else:
-                # If no URL has been provided yet and no last recipe is stored, prompt the user to enter a URL
-                yield fp.PartialResponse(text="Please provide a URL to extract a recipe from.")
+            yield fp.PartialResponse(text="Please provide a URL to extract a recipe from.")
 
     async def get_settings(self, setting: fp.SettingsRequest) -> fp.SettingsResponse:
         return fp.SettingsResponse(
-            introduction_message="Hi there! I'm Recipe Extractor bot. I can help you extract recipe details from a given URL. Just send me a URL and I'll do my best to provide a clean, organized Markdown format of the recipe.",
             server_bot_dependencies={"Claude-instant": 1}
         )
 
