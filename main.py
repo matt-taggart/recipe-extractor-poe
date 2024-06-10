@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import uuid
 from typing import AsyncIterable, Optional
 import fastapi_poe as fp
 import requests
@@ -75,13 +76,13 @@ class RecipeExtractorBot(fp.PoeBot):
         for protmsg in request.query:
             if protmsg.role == "system":
                 sysmsgexists = True
-        
+
         # If no system message exists, add one
         if not sysmsgexists:
             request.query.insert(0, fp.ProtocolMessage(role="system", content=self.system_message))
-        
+
         user_input = get_latest_user_input(request.query)
-        
+
         # Check if the input contains a URL
         url_match = re.search(r'(https?://[^\s]+)', user_input)
         if url_match:
@@ -100,7 +101,12 @@ class RecipeExtractorBot(fp.PoeBot):
                     fp.ProtocolMessage(role="system", content=self.system_message),
                     fp.ProtocolMessage(role="user", content=prompt)
                 ],
-                access_key=request.access_key
+                access_key=request.access_key,
+                version="1.0",  # Example version, replace with the actual version
+                type="query",  # Example type, replace with the correct type
+                user_id=request.user_id,
+                conversation_id=request.conversation_id,
+                message_id=str(uuid.uuid4())  # Generate a unique message ID
             )
 
             async for msg in fp.stream_request(gpt4_request, "GPT-4-128k", request.access_key):
@@ -108,7 +114,7 @@ class RecipeExtractorBot(fp.PoeBot):
         else:
             if self.last_recipe_text:
                 modification_response = f"Recipe: {self.last_recipe_text}\nModification: {user_input}"
-                
+
                 # Prepare the message to send to GPT-4 including the modification
                 prompt = f"Extracted recipe text:\n\n{self.last_recipe_text}\n\nUser's modification request:\n\n{user_input}\n\n{self.system_message}"
                 gpt4_request = fp.QueryRequest(
@@ -116,7 +122,12 @@ class RecipeExtractorBot(fp.PoeBot):
                         fp.ProtocolMessage(role="system", content=self.system_message),
                         fp.ProtocolMessage(role="user", content=prompt)
                     ],
-                    access_key=request.access_key
+                    access_key=request.access_key,
+                    version="1.0",  # Example version, replace with the actual version
+                    type="query",  # Example type, replace with the correct type
+                    user_id=request.user_id,
+                    conversation_id=request.conversation_id,
+                    message_id=str(uuid.uuid4())  # Generate a unique message ID
                 )
 
                 async for msg in fp.stream_request(gpt4_request, "GPT-4-128k", request.access_key):
