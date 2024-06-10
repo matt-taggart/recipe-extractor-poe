@@ -4,4 +4,3 @@ fastapi_poe
 requests
 beautifulsoup4
 python-dotenv 
-uuid
