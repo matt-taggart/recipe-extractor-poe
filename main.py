@@ -36,21 +36,6 @@ def fetch_and_extract_text_from_url(url: str) -> str:
     except Exception as e:
         return f"Error parsing the content: {e}"
 
-def process_recipe_request(parsedText, system_message, instructions):
-    return f"""
-    {system_message}
-    {instructions}
-    {parsedText}
-    """
-
-def process_modification_request(modification_text, last_recipe_text, system_message, instructions):
-    return f"""
-    {system_message}
-    {instructions}
-    Recipe: {last_recipe_text}
-    Modification: {modification_text}
-    """
-
 def get_latest_user_input(messages):
     latest = ""
 
@@ -79,18 +64,19 @@ class RecipeExtractorBot(fp.PoeBot):
         user_input = get_latest_user_input(request.query)
         
         # Define system message and instructions
-        system_message = "## Context: You are Recipe Extractor bot, a helpful AI assistant."
-        instructions = """
+        system_message = """
+        ## Context: You are Recipe Extractor bot, a helpful AI assistant.
+        
         ### Instructions
-
+        
         The recipe name, ingredients, instructions, and modifications should be returned as Markdown separated into three sections (four if returning a modification):
-
+        
         1. Recipe name
         2. Ingredients
         3. Instructions
-        4. Modifications (If applicable) 
+        4. Modifications (If applicable)
         """
-
+        
         # Check if the input contains a URL
         url_match = re.search(r'(https?://[^\s]+)', user_input)
         if url_match:
@@ -100,13 +86,13 @@ class RecipeExtractorBot(fp.PoeBot):
             if not extracted_text:
                 yield fp.PartialResponse(text="This URL doesn't look like it's valid. Can you please try again?")
                 return
-            response_text = process_recipe_request(extracted_text, system_message, instructions)
+            response_text = f"{system_message}\n{extracted_text}"
             self.last_recipe_text = extracted_text
             yield fp.PartialResponse(text=response_text)
         else:
             if self.last_recipe_text:
                 # If there's a previously stored recipe, assume this is a modification request
-                response_text = process_modification_request(user_input, self.last_recipe_text, system_message, instructions)
+                response_text = f"{system_message}\nRecipe: {self.last_recipe_text}\nModification: {user_input}"
                 yield fp.PartialResponse(text=response_text)
             else:
                 # If no URL has been provided yet and no last recipe is stored, prompt the user to enter a URL
@@ -114,7 +100,7 @@ class RecipeExtractorBot(fp.PoeBot):
 
     async def get_settings(self, setting: fp.SettingsRequest) -> fp.SettingsResponse:
         return fp.SettingsResponse(
-            server_bot_dependencies={"GPT-4o": 1},
+            server_bot_dependencies={"GPT-4-128k": 1},
             enable_multi_bot_chat_prompting=True,
             allow_attachments=True,
             enable_image_comprehension=True,
