@@ -104,9 +104,9 @@ class RecipeExtractorBot(fp.PoeBot):
                 access_key=request.access_key,
                 version="1.0",  # Example version, replace with the actual version
                 type="query",  # Example type, replace with the correct type
-                user_id=request.user_id,
-                message_id=request.message_id,
-                conversation_id=request.conversation_id
+                user_id=str(request.user_id),  # Ensure user_id is a string
+                conversation_id=str(request.conversation_id),  # Ensure conversation_id is a string
+                message_id=str(uuid.uuid4())  # Generate a unique message ID
             )
 
             async for msg in fp.stream_request(gpt4_request, "GPT-4-128k", request.access_key):
@@ -125,9 +125,9 @@ class RecipeExtractorBot(fp.PoeBot):
                     access_key=request.access_key,
                     version="1.0",  # Example version, replace with the actual version
                     type="query",  # Example type, replace with the correct type
-                    user_id=request.user_id,
-                    message_id=request.message_id,
-                    conversation_id=request.conversation_id
+                    user_id=str(request.user_id),  # Ensure user_id is a string
+                    conversation_id=str(request.conversation_id),  # Ensure conversation_id is a string
+                    message_id=str(uuid.uuid4())  # Generate a unique message ID
                 )
 
                 async for msg in fp.stream_request(gpt4_request, "GPT-4-128k", request.access_key):
@@ -139,7 +139,7 @@ class RecipeExtractorBot(fp.PoeBot):
     async def get_settings(self, setting: fp.SettingsRequest) -> fp.SettingsResponse:
         return fp.SettingsResponse(
             introduction_message="Hi there! I'm Recipe Extractor bot. I can help you extract recipe details from a given URL. Just send me a URL and I'll do my best to provide a clean, organized Markdown format of the recipe.",
-            server_bot_dependencies={"GPT-4-128k": 1},
+            server_bot_dependencies={"GPT-4-128k": 1}, 
             enable_multi_bot_chat_prompting=True,
             allow_attachments=True,
             enable_image_comprehension=True,
