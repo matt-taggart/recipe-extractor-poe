@@ -48,41 +48,41 @@ def get_latest_user_input(messages):
 class RecipeExtractorBot(fp.PoeBot):
 
     async def get_response(self, request: fp.QueryRequest) -> AsyncIterable[fp.PartialResponse]:
-        user_input = get_latest_user_input(request.query)
+            user_input = get_latest_user_input(request.query)
 
-        # Check if the input contains a URL
-        url_match = re.search(r'(https?://[^\s]+)', user_input)
-        if url_match:
-            url = url_match.group(0)
-            self.last_url = url
-            extracted_text = fetch_and_extract_text_from_url(url)
-            if not extracted_text:
-                yield fp.PartialResponse(text="This URL doesn't look like it's valid. Can you please try again?")
-                return
-            self.last_recipe_text = extracted_text
+            # Check if the input contains a URL
+            url_match = re.search(r'(https?://[^\s]+)', user_input)
+            if url_match:
+                url = url_match.group(0)
+                extracted_text = fetch_and_extract_text_from_url(url)
+                print('extracted', extracted_text)
+                if not extracted_text:
+                    yield fp.PartialResponse(text="This URL doesn't look like it's valid. Can you please try again?")
+                    return
 
-            # Prepare the message to send to GPT-4
-            prompt = f"Extracted recipe text:\n\n{extracted_text}\n\n"
-            gpt4_request = fp.QueryRequest(
-                query=[
-                    fp.ProtocolMessage(role="user", content=prompt)
-                ],
-                access_key=request.access_key,
-                version="1.0",  # Example version, replace with the actual version
-                type="query",  # Example type, replace with the correct type
-                user_id=str(request.user_id),  # Ensure user_id is a string
-                conversation_id=str(request.conversation_id),  # Ensure conversation_id is a string
-                message_id=str(request.message_id) # Generate a unique message ID
-            )
 
-            async for msg in fp.stream_request(gpt4_request, "Claude-instant", request.access_key):
-                 print("Received message:", msg)
-                 yield msg.model_copy(update={"text": msg.text })
-        else:
-            yield fp.PartialResponse(text="Please provide a URL to extract a recipe from.")
+                # Prepare the message to send to GPT-4
+                # prompt = f"Extracted recipe text:\n\n{extracted_text}\n\n{self.system_message}"
+                # gpt4_request = fp.QueryRequest(
+                #     query=[
+                #         fp.ProtocolMessage(role="system", content=self.system_message),
+                #         fp.ProtocolMessage(role="user", content=prompt)
+                #     ],
+                #     access_key=request.access_key,
+                #     version="1.0",  # Example version, replace with the actual version
+                #     type="query",  # Example type, replace with the correct type
+                #     user_id=str(request.user_id),  # Ensure user_id is a string
+                #     conversation_id=str(request.conversation_id),  # Ensure conversation_id is a string
+                #     message_id=str(request.message_id) # Generate a unique message ID
+                # )
+
+                print("request", request);
+                async for msg in fp.stream_request(request, "Claude-instant", request.access_key):
+                    yield msg
 
     async def get_settings(self, setting: fp.SettingsRequest) -> fp.SettingsResponse:
         return fp.SettingsResponse(
+            introduction_message="Hi there! I'm Recipe Extractor bot. I can help you extract recipe details from a given URL. Just send me a URL and I'll do my best to provide a clean, organized Markdown format of the recipe.",
             server_bot_dependencies={"Claude-instant": 1}
         )
 
