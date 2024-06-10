@@ -50,12 +50,12 @@ class RecipeExtractorBot(fp.PoeBot):
         self, request: fp.QueryRequest
     ) -> AsyncIterable[fp.PartialResponse]:
         async for msg in fp.stream_request(
-            request, "GPT-3.5-Turbo", request.access_key
+            request, "Claude-instant", request.access_key
         ):
             yield msg
 
     async def get_settings(self, setting: fp.SettingsRequest) -> fp.SettingsResponse:
-        return fp.SettingsResponse(server_bot_dependencies={"GPT-3.5-Turbo": 1})
+        return fp.SettingsResponse(server_bot_dependencies={"Claude-instant": 1})
 
 
 recipe_extractor_bot = RecipeExtractorBot()
