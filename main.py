@@ -161,7 +161,7 @@ class RecipeExtractorBot(fp.PoeBot):
                 message_id=str(request.message_id) # Generate a unique message ID
             )
 
-            async for msg in fp.stream_request(gpt4_request, "Claude-3.5-Sonnet-200k", request.access_key):
+            async for msg in fp.stream_request(gpt4_request, "Claude-3.5-Haiku-200k", request.access_key):
                 yield msg
         else:
             if self.last_recipe_text:
@@ -180,7 +180,7 @@ class RecipeExtractorBot(fp.PoeBot):
                     message_id=str(request.message_id)
                 )
 
-                async for msg in fp.stream_request(gpt4_request, "Claude-3.5-Sonnet-200k", request.access_key):
+                async for msg in fp.stream_request(gpt4_request, "Claude-3-Haiku-200k", request.access_key):
                     yield msg
             else:
                 # If no URL has been provided yet and no last recipe is stored, prompt the user to enter a URL
@@ -189,7 +189,7 @@ class RecipeExtractorBot(fp.PoeBot):
     async def get_settings(self, setting: fp.SettingsRequest) -> fp.SettingsResponse:
         return fp.SettingsResponse(
             introduction_message="Hi there! I'm Recipe Extractor bot. I can help you extract recipe details from a given URL. Just send me a URL and I'll do my best to provide a clean, organized Markdown format of the recipe.",
-            server_bot_dependencies={"Claude-3.5-Sonnet-200k": 1}, 
+            server_bot_dependencies={"Claude-3-Haiku-200k": 1}, 
             enable_multi_bot_chat_prompting=True,
             allow_attachments=True,
             enable_image_comprehension=True,
