@@ -161,7 +161,7 @@ class RecipeExtractorBot(fp.PoeBot):
                 message_id=str(request.message_id) # Generate a unique message ID
             )
 
-            async for msg in fp.stream_request(gpt4_request, "Claude-3.5-Haiku-200k", request.access_key):
+            async for msg in fp.stream_request(gpt4_request, "Claude-3-Haiku-200k", request.access_key):
                 yield msg
         else:
             if self.last_recipe_text:
