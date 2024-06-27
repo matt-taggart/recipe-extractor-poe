@@ -122,7 +122,9 @@ class RecipeExtractorBot(fp.PoeBot):
         If there is a modification, ALWAYS return updated the ingredients and instructions with the updated ingredients and instructions.
         
         ## Error Handling
-        If there is an error extracting the recipe, say "Oops! It looks like that website is blocking access to its recipe. How about we try a different one? Or if you'd like, you can copy and paste the whole recipe here, and I'll be happy to help you out!""
+        If there is an error extracting the recipe, say "Oops! It looks like that website is blocking access to its recipe. How about we try a different one? Or if you'd like, you can copy and paste the entire page here (ctrl + a followed by ctrl + c), and I'll be happy to help you out!""
+
+        If the error message has already been displayed, allow the user to make a new request. In this case, please do not try to extract the recipe again.
         """
 
     async def get_response(self, request: fp.QueryRequest) -> AsyncIterable[fp.PartialResponse]:
@@ -196,6 +198,7 @@ class RecipeExtractorBot(fp.PoeBot):
             enable_multi_bot_chat_prompting=True,
             allow_attachments=True,
             enable_image_comprehension=True,
+            suggest_commands=True
         )
 
 recipe_extractor_bot = RecipeExtractorBot()
