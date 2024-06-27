@@ -82,6 +82,8 @@ class RecipeExtractorBot(fp.PoeBot):
 
         If there's no modifications, just return the recipe name, ingredients, and instructions.
 
+        Please do not include a preamble in the response.
+
 
         ### Example Markdown Output:
 
@@ -130,7 +132,7 @@ class RecipeExtractorBot(fp.PoeBot):
         - Found suitable subsitution for dairy that still works with the recipe
 
         ## Internal Context & Instructions
-        If there is a modification, ALWAYS return updated the ingredients and instructions with the updated ingredients and instructions. Please do not include a preamble in the response. Just return the recipe.
+        If there is a modification, ALWAYS return updated the ingredients and instructions with the updated ingredients and instructions.
         
         ## Error Handling
         If there is an error extracting the recipe, say "Oops! It looks like that website is blocking access to its recipe. How about we try a different one? Or if you'd like, you can copy and paste the entire page here (ctrl + a followed by ctrl + c), and I'll be happy to help you out!""
