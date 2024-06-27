@@ -7,6 +7,10 @@ import requests
 from bs4 import BeautifulSoup
 import re
 
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -22,7 +26,7 @@ def is_valid_url(url: str) -> bool:
 
 def fetch_and_extract_text_from_url(url: str) -> str:
     if not is_valid_url(url):
-        return ""
+        return "Invalid URL format"
     
     try:
         session = requests.Session()
@@ -36,16 +40,20 @@ def fetch_and_extract_text_from_url(url: str) -> str:
             'Upgrade-Insecure-Requests': '1'
         }
 
-        response = session.get(url, headers=headers)
+        response = session.get(url, headers=headers, timeout=10)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.content, 'html.parser')
         text = soup.get_text(separator="\n")
         return text.strip()
+    except requests.Timeout:
+        return "Error: Request timed out"
+    except requests.HTTPError as e:
+        return f"HTTP Error: {e}"
     except requests.RequestException as e:
         return f"Error fetching the URL: {e}"
     except Exception as e:
-        return f"Error parsing the content: {e}"
+        return f"Unexpected error: {e}"
 
 def get_latest_user_input(messages):
     latest = ""
@@ -82,7 +90,8 @@ class RecipeExtractorBot(fp.PoeBot):
 
         If there's no modifications, just return the recipe name, ingredients, and instructions.
 
-        Please do not include a preamble in the response.
+        Please do not include a preamble in the response. Don't include anything like "Here is the recipe extracted and formatted according to the instructions:"
+
 
 
         ### Example Markdown Output:
@@ -140,7 +149,8 @@ class RecipeExtractorBot(fp.PoeBot):
         If the error message has already been displayed, allow the user to make a new request. In this case, please do not try to extract the recipe again.
         """
 
-    async def get_response(self, request: fp.QueryRequest) -> AsyncIterable[fp.PartialResponse]:
+async def get_response(self, request: fp.QueryRequest) -> AsyncIterable[fp.PartialResponse]:
+    try:
         # Check if a system message exists
         sysmsgexists = False
         for protmsg in request.query:
@@ -159,6 +169,9 @@ class RecipeExtractorBot(fp.PoeBot):
             url = url_match.group(0)
             self.last_url = url
             extracted_text = fetch_and_extract_text_from_url(url)
+            if extracted_text.startswith("Error"):
+                yield fp.PartialResponse(text=f"An error occurred: {extracted_text}")
+                return
             if not extracted_text:
                 yield fp.PartialResponse(text="This URL doesn't look like it's valid. Can you please try again?")
                 return
@@ -204,6 +217,8 @@ class RecipeExtractorBot(fp.PoeBot):
                 # If no URL has been provided yet and no last recipe is stored, prompt the user to enter a URL
                 yield fp.PartialResponse(text="Please provide a URL to extract a recipe from.")
 
+    except Exception as e:
+        yield fp.PartialResponse(text=f"An unexpected error occurred: {str(e)}")
     async def get_settings(self, setting: fp.SettingsRequest) -> fp.SettingsResponse:
         return fp.SettingsResponse(
             introduction_message="Hi there! I'm Recipe Extractor bot. I can help you extract recipe details from a given URL. Just send me a URL and I'll do my best to provide a clean, organized Markdown format of the recipe.",
