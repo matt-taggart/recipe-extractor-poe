@@ -90,10 +90,6 @@ class RecipeExtractorBot(fp.PoeBot):
 
         If there's no modifications, just return the recipe name, ingredients, and instructions.
 
-        Please do not include a preamble in the response. Don't include anything like "Here is the recipe extracted and formatted according to the instructions:"
-
-
-
         ### Example Markdown Output:
 
         ## Roast Beef Horseradish Roll-Ups
