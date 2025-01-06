@@ -30,6 +30,13 @@ Run the server:
 
 The bot server will now be started on [`localhost:8080`](http://localhost:8080). 
 
+## Production Deployment
+
+See the "Quick Start" section in the left-hand navigation menu under Server Bots. I ended up self hosting on Digital Ocean rather than using Modal as a service, but that's likely a good option as well. 
+
+![image](https://github.com/user-attachments/assets/5c13383c-90c4-47ba-8f42-d96428123bf3)
+
+
 ## Built With
 * Python
 * FastAPI Poe
